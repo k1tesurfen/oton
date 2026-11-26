@@ -81,7 +81,9 @@ Fehlt etwas davon, zeigt oton im Menü „⚠︎ Get Wolfgang“.
 
 ### Neue Versionen
 
-Neue `oton.dmg` laden und oton im Programme-Ordner ersetzen. Mikrofon-Erlaubnis und Einstellungen bleiben.
+Um Updates musst du dich nicht kümmern. oton schaut beim Start und einmal am Tag nach. Gibt's was Neues, kommt eine Mitteilung mit **Update**; wer sie verpasst, findet „Update to oton …“ oben im Menü (Rechtsklick). Ein Klick: oton lädt die neue Version, prüft, dass sie mit demselben Zertifikat signiert ist, ersetzt sich selbst und startet neu. Mikrofon-Erlaubnis und Einstellungen bleiben, „Dennoch öffnen“ ist nicht nochmal nötig. Während einer Aufnahme oder Transkription wird nie aktualisiert.
+
+Im Terminal: `ot update`. (Das klappt ab Version 0.3.0. Von 0.2.x aus einmal die neue `oton.dmg` von Hand installieren.)
 
 ---
 
@@ -153,7 +155,7 @@ scripts/make-cert.sh        # einmal: selbst signiertes Zertifikat "oton Local" 
 make test                   # Unit-Tests + ein echter Durchlauf durch Wolfgang (~30 s, immer frisch gebaut)
 make install                # bauen, signieren, nach /Applications, starten
 make dmg                    # build/oton.dmg
-make release VERSION=0.3.0  # testen, DMG, Tag, Push, GitHub-Release (Notizen: docs/release-notes/0.3.0.md)
+make release VERSION=0.4.0  # testen, DMG + oton.app.zip, Tag, Push, GitHub-Release (Notizen: docs/release-notes/0.4.0.md)
 
 swift build && OTON_DEV_ROOT=/tmp/o .build/debug/oton   # ungebündelt mit eigenem Datenordner
 OTON_DEV_ROOT=/tmp/o .build/debug/ot start
@@ -162,6 +164,8 @@ OTON_DEV_ROOT=/tmp/o .build/debug/ot start
 Das DMG-Fensterlayout liegt fertig in `Resources/dmg/DS_Store`; `make dmg` braucht den Finder nicht. Nach Änderungen an `Resources/dmg/background.svg` einmal `scripts/make-dmg.sh --layout build/oton.app build/oton.dmg` (öffnet kurz ein Finder-Fenster).
 
 **Signieren ohne Apple-Konto:** Alle Versionen werden mit demselben selbst signierten Zertifikat signiert. macOS bindet die Mikrofon-Erlaubnis an dieses Zertifikat, deshalb bleibt sie bei Updates erhalten. Gatekeeper braucht trotzdem einmal „Dennoch öffnen“.
+
+**Selbst-Update:** oton fragt `api.github.com/repos/k1tesurfen/oton/releases/latest`, lädt `oton.app.zip` und installiert nur, wenn die neue App die *designated requirement* der laufenden erfüllt (Bundle-ID + dasselbe Zertifikat). Ohne den privaten Schlüssel aus dem Schlüsselbund lässt sich also kein Update unterschieben. Heruntergeladen per URLSession, daher ohne Quarantäne-Flag.
 
 </details>
 

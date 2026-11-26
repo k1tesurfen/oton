@@ -27,6 +27,7 @@ final class Controller {
     var wolfgangOK = true
 
     var notifier: Notifier?
+    var updater: Updater?
     var onStateChange: (() -> Void)?
     private var ticks = 0
 
@@ -386,6 +387,12 @@ final class Controller {
             let url = req.name == "recordings" ? paths.recordings : paths.transcriptions
             NSWorkspace.shared.open(url)
             emit(.success(url.path))
+        case "update":
+            guard let up = updater else { return emit(.failure("no updater")) }
+            up.check(quiet: true) { u in
+                guard u != nil else { return emit(.success("oton \(Setup.version) is the latest version")) }
+                up.install(emit)
+            }
         case "reload":
             loadSettings()
             checkWolfgang()

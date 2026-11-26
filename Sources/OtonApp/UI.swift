@@ -5,6 +5,7 @@ import UserNotifications
 final class Notifier: NSObject, UNUserNotificationCenterDelegate {
     /// Copies the transcript at the path with the prompt.
     let onCopy: (String) -> Void
+    var onUpdate: (() -> Void)?
 
     init(onCopy: @escaping (String) -> Void) {
         self.onCopy = onCopy
@@ -12,7 +13,9 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
         let c = UNUserNotificationCenter.current()
         c.delegate = self
         let copy = UNNotificationAction(identifier: "COPY", title: "Copy for Gemini", options: [])
-        c.setNotificationCategories([UNNotificationCategory(identifier: "READY", actions: [copy], intentIdentifiers: [])])
+        let update = UNNotificationAction(identifier: "UPDATE", title: "Update", options: [])
+        c.setNotificationCategories([UNNotificationCategory(identifier: "READY", actions: [copy], intentIdentifiers: []),
+                                     UNNotificationCategory(identifier: "UPDATE", actions: [update], intentIdentifiers: [])])
         c.requestAuthorization(options: [.alert, .sound]) { ok, err in
             if !ok { log("notifications not allowed \(err.map { "\($0)" } ?? "")") }
             DispatchQueue.main.async { self.allowed = ok }
@@ -33,6 +36,10 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
 
     func postReady(title: String, body: String, path: String) { add(title: title, body: body, category: "READY", info: ["path": path]) }
 
+    func postUpdate(version: String) {
+        add(title: "oton \(version) is available", body: "You have \(Setup.version). Update now, or later from the menu.", category: "UPDATE", info: [:])
+    }
+
     private func add(title: String, body: String, category: String?, info: [String: String]) {
         let content = UNMutableNotificationContent()
         content.title = title
@@ -49,6 +56,10 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
         if content.categoryIdentifier == "READY", let path = content.userInfo["path"] as? String,
            response.actionIdentifier == "COPY" || response.actionIdentifier == UNNotificationDefaultActionIdentifier {
             DispatchQueue.main.async { self.onCopy(path) }
+        }
+        if content.categoryIdentifier == "UPDATE",
+           response.actionIdentifier == "UPDATE" || response.actionIdentifier == UNNotificationDefaultActionIdentifier {
+            DispatchQueue.main.async { self.onUpdate?() }
         }
         done()
     }
@@ -153,6 +164,10 @@ final class StatusItem: NSObject, NSMenuDelegate, NSViewToolTipOwner {
             i.isEnabled = false
             menu.addItem(i)
         }
+        if let u = c.updater?.available {
+            let i = add(menu, c.updater?.installing == true ? "Updating to oton \(u.version)…" : "Update to oton \(u.version)…", #selector(update))
+            i.isEnabled = c.updater?.installing != true
+        }
         menu.addItem(.separator())
         add(menu, c.isRecording ? "Stop recording" : "Start recording", #selector(toggle))
         let copy = add(menu, "Copy latest for Gemini", #selector(copyLatest))
@@ -202,6 +217,7 @@ final class StatusItem: NSObject, NSMenuDelegate, NSViewToolTipOwner {
         cli.isEnabled = !Setup.cliInstalled
         add(setup, "Install Alfred workflow (keyword: ot)…", #selector(installAlfred)).isEnabled = Setup.alfredWorkflow != nil
         setup.addItem(.separator())
+        add(setup, "Check for updates", #selector(checkUpdates))
         add(setup, "oton \(Setup.version) on GitHub…", #selector(openGitHub))
         let setupItem = NSMenuItem(title: "Setup", action: nil, keyEquivalent: "")
         setupItem.submenu = setup
@@ -244,6 +260,12 @@ final class StatusItem: NSObject, NSMenuDelegate, NSViewToolTipOwner {
         else { controller.notifier?.post(title: "oton", body: "Installed: type `ot help` in a terminal.") }
     }
     @objc func installAlfred() { Setup.installAlfredWorkflow() }
+    @objc func update() { run { c, done in c.updater?.install(done) ?? done(.failure("no updater")) } }
+    @objc func checkUpdates() {
+        controller.updater?.check(quiet: true) { [weak self] u in
+            self?.controller.notifier?.post(title: "oton", body: u.map { "oton \($0.version) is available: right-click → Update." } ?? "oton \(Setup.version) is the latest version.")
+        }
+    }
     @objc func openGitHub() { NSWorkspace.shared.open(URL(string: "https://github.com/k1tesurfen/oton")!) }
     @objc func quit() {
         controller.shutdown()

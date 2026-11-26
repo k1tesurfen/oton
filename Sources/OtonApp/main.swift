@@ -24,10 +24,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 if !r.ok { c.notifier?.post(title: "oton", body: r.message) }
             }
         }
+        let up = Updater()
+        up.controller = c
+        c.updater = up
+        c.notifier?.onUpdate = { up.install { r in if !r.ok { c.notifier?.post(title: "oton", body: r.message) } } }
         statusItem = StatusItem(controller: c)
         c.onStateChange = { [weak self] in self?.statusItem?.refresh() }
         c.start()
         Setup.registerOnFirstStart()
+        up.onChange = { [weak self] in self?.statusItem?.refresh() }
+        if Bundle.main.bundleURL.pathExtension == "app" { up.start() }
 
         // Socket requests arrive on background threads; all state lives on the main thread.
         server = SocketServer(path: c.paths.socket.path) { req, emit in

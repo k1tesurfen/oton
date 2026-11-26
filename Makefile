@@ -1,13 +1,14 @@
-VERSION  ?= 0.2.1
+VERSION  ?= 0.3.0
 IDENTITY ?= oton Local
 APP      := build/oton.app
 DMG      := build/oton.dmg
+ZIP      := build/oton.app.zip
 BIN      = $(shell swift build -c release --arch arm64 --show-bin-path)
 DOMAIN   := gui/$(shell id -u)
 # Command Line Tools only (no Xcode): swift test doesn't find the Swift Testing macro plugin on its own.
 TESTING_PLUGINS := /Library/Developer/CommandLineTools/usr/lib/swift/host/plugins/testing
 
-.PHONY: build app install uninstall cleanup-old test cert icon alfred dmg release clean
+.PHONY: build app install uninstall cleanup-old test cert icon alfred dmg zip release clean
 
 build:
 	swift build -c release --arch arm64
@@ -63,12 +64,18 @@ cleanup-old:
 dmg: app
 	scripts/make-dmg.sh $(APP) $(DMG)
 
-# Build, then publish v$(VERSION) on GitHub with the DMG (needs a clean, pushed main).
-release: test dmg
+# What the self-update downloads (the app checks it's signed with the same certificate before installing).
+zip: app
+	rm -f $(ZIP)
+	ditto -c -k --keepParent $(APP) $(ZIP)
+	@echo "$(ZIP) ($$(du -h $(ZIP) | cut -f1))"
+
+# Build, then publish v$(VERSION) on GitHub with the DMG and the update zip (needs a clean, pushed main).
+release: test dmg zip
 	@test -z "$$(git status --porcelain)" || (echo "uncommitted changes"; exit 1)
 	git tag -a v$(VERSION) -m "oton $(VERSION)"
 	git push origin main v$(VERSION)
-	gh release create v$(VERSION) $(DMG) --title "oton $(VERSION)" --notes-file docs/release-notes/$(VERSION).md
+	gh release create v$(VERSION) $(DMG) $(ZIP) --title "oton $(VERSION)" --notes-file docs/release-notes/$(VERSION).md
 
 # Always from scratch: incremental test builds lose the Testing macro plugin.
 test:

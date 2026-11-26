@@ -16,6 +16,7 @@ ot – control oton (menu-bar recorder → Wolfgang transcript → Gemini)
   ot mic <n|name>           prefer this mic (remembered; switches a running recording)
   ot retry [id]             re-run a failed transcription
   ot reveal [recordings]    open the transcriptions (or recordings) folder
+  ot update                 install a newer release from GitHub (oton restarts)
   ot launch                 start the app after a Quit
   ot reload                 re-read settings.json
 
@@ -184,6 +185,7 @@ case "copy":
 case "mic", "mics":
     if args.isEmpty || args == ["list"] { send(Request(cmd: "mic-list")) } else { send(Request(cmd: "mic-set", name: args.joined(separator: " "))) }
 case "retry": send(Request(cmd: "retry", id: args.first))
+case "update": send(Request(cmd: "update"))
 case "reveal", "open": send(Request(cmd: "reveal", name: args.first))
 case "launch":
     if isRunning() { print("oton is running.") } else if launch() { print("oton started.") } else { fail("started, but oton doesn't answer yet; see ~/Library/Application Support/oton/oton.log") }
