@@ -42,8 +42,6 @@
   <sub>bereit · nimmt auf · wartet auf ein Mikrofon · schreibt auf</sub>
 </p>
 
-**Nichts läuft heimlich.** oton nimmt nur auf, wenn du es startest. Solange es aufnimmt, zeigt macOS den orangen Mikrofon-Punkt und oton den Punkt im O. Mit der Maus übers O fahren zeigt, wie lange schon.
-
 ---
 
 ## Installieren
