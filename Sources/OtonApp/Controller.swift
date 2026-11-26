@@ -37,6 +37,7 @@ final class Controller {
     // MARK: lifecycle
 
     func start() {
+        if let msg = Paths.migrateFromDocuments(to: paths) { log(msg) }
         try? paths.prepare()
         loadSettings()
         _ = Prompt.template(paths: paths)
@@ -273,7 +274,7 @@ final class Controller {
             notifier?.postReady(title: "Transcript ready", body: "\(span) · copy it with the prompt for Gemini", path: url.path)
         case .failure(OtonError.noSpeech):
             log("\(job.id): no speech")
-            notifier?.post(title: "No speech recognised", body: "\(span). The recording is kept in Documents/oton/recordings.")
+            notifier?.post(title: "No speech recognised", body: "\(span). The recording is kept in ~/oton/recordings.")
         case .failure(let e):
             log("\(job.id) failed: \(e)")
             notifier?.post(title: "Transcription failed", body: "\(span): \(e). Retry from the menu or with `ot retry`.")

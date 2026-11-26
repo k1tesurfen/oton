@@ -130,12 +130,12 @@ Alles gibt's auch als JSON (`ot --json …`), eine Zeile pro Ereignis.
 
 | | |
 |---|---|
-| `~/Documents/oton/recordings/26-11-26_1040-1125_45m_oton.m4a` | jede Aufnahme (AAC, 16 kHz mono, ≈ 15 MB pro Stunde) |
-| `~/Documents/oton/transcriptions/26-11-26_1040-1125_45m_oton.txt` | das Transkript dazu (gleicher Name) |
+| `~/oton/recordings/26-11-26_1040-1125_45m_oton.m4a` | jede Aufnahme (AAC, 16 kHz mono, ≈ 15 MB pro Stunde) |
+| `~/oton/transcriptions/26-11-26_1040-1125_45m_oton.txt` | das Transkript dazu (gleicher Name) |
 | `~/Library/Application Support/oton/prompt.md` | der Gemini-Prompt – anpassen über Rechtsklick → Edit prompt… |
 | `~/Library/Application Support/oton/settings.json` | Mikrofon-Reihenfolge, Wolfgang-Pfad, Gemini-Adresse |
 
-oton löscht nichts von selbst. Aufräumen ist deine Sache.
+`~/oton` ist der Ordner **oton** in deinem Benutzerordner (im Finder: ⇧⌘H). Bewusst nicht in „Dokumente“: der wird bei manchen mit iCloud abgeglichen. oton löscht nichts von selbst; Aufräumen ist deine Sache.
 
 **Datenschutz:** Aufnahme und Transkription laufen komplett auf deinem Mac, nichts geht ins Internet. Erst wenn du das Transkript in Gemini einfügst, verlässt es den Rechner. Das Transkript hat keine Sprecherzuordnung. Wer andere aufnimmt, fragt vorher.
 

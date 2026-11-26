@@ -1,6 +1,6 @@
 import Foundation
 
-/// A finished transcription in `~/Documents/oton/transcriptions/`.
+/// A finished transcription in `~/oton/transcriptions/`.
 public struct TranscriptInfo: Codable, Equatable, Sendable {
     public var number: Int          // 1 = newest
     public var name: String

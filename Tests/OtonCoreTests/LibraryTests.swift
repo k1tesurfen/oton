@@ -8,7 +8,7 @@ func at(_ h: Int, _ m: Int, _ s: Int = 0, day: Int = 26) -> Date {
 
 func tempPaths() throws -> Paths {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent("oton-test-\(UUID().uuidString)")
-    let p = Paths(support: root.appendingPathComponent("support"), documents: root.appendingPathComponent("docs"))
+    let p = Paths(support: root.appendingPathComponent("support"), home: root.appendingPathComponent("docs"))
     try p.prepare()
     return p
 }
@@ -50,5 +50,50 @@ func cleanup(_ p: Paths) { try? FileManager.default.removeItem(at: p.support.del
     @Test func clock() {
         #expect(Fmt.clock(247) == "4:07")
         #expect(Fmt.clock(3753) == "1:02:33")
+    }
+}
+
+@Suite struct PathsTests {
+    @Test func homeIsItsOwnFolder() {
+        let p = Paths.standard
+        if ProcessInfo.processInfo.environment["OTON_DEV_ROOT"] == nil {
+            #expect(p.home == FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("oton", isDirectory: true))
+        }
+        #expect(p.recordings.lastPathComponent == "recordings")
+        #expect(!p.recordings.path.contains("/Documents/"))
+    }
+}
+
+@Suite struct MigrationTests {
+    func file(_ url: URL, _ text: String) throws {
+        try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try Data(text.utf8).write(to: url)
+    }
+
+    @Test func movesWholeFolderWhenNewOneIsMissing() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent("oton-mig-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: root) }
+        let old = root.appendingPathComponent("Documents/oton")
+        let p = Paths(support: root.appendingPathComponent("support"), home: root.appendingPathComponent("oton"))
+        try file(old.appendingPathComponent("recordings/a.m4a"), "A")
+        #expect(Paths.migrateFromDocuments(to: p, old: old)?.hasPrefix("moved ") == true)
+        #expect(try String(contentsOf: p.recordings.appendingPathComponent("a.m4a"), encoding: .utf8) == "A")
+        #expect(!FileManager.default.fileExists(atPath: old.path))
+        #expect(Paths.migrateFromDocuments(to: p, old: old) == nil)   // nothing left to do
+    }
+
+    @Test func mergesWithoutOverwritingOrDeleting() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent("oton-mig-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: root) }
+        let old = root.appendingPathComponent("Documents/oton")
+        let p = Paths(support: root.appendingPathComponent("support"), home: root.appendingPathComponent("oton"))
+        try file(old.appendingPathComponent("recordings/a.m4a"), "old A")
+        try file(old.appendingPathComponent("transcriptions/b.txt"), "B")
+        try file(p.recordings.appendingPathComponent("a.m4a"), "new A")
+        #expect(Paths.migrateFromDocuments(to: p, old: old) == "moved 1 file(s) from \(old.path) to \(p.home.path)")
+        #expect(try String(contentsOf: p.recordings.appendingPathComponent("a.m4a"), encoding: .utf8) == "new A")   // not overwritten
+        #expect(try String(contentsOf: p.transcriptions.appendingPathComponent("b.txt"), encoding: .utf8) == "B")
+        #expect(try String(contentsOf: old.appendingPathComponent("recordings/a.m4a"), encoding: .utf8) == "old A")   // clash stays put
+        #expect(!FileManager.default.fileExists(atPath: old.appendingPathComponent("transcriptions").path))     // emptied → removed
     }
 }

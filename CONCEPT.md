@@ -21,8 +21,9 @@ No time windows, no network/location rules, no buffer. Nothing is recorded unles
 ### Recording
 - **Start/stop only by me:** left click on the menu bar icon, `ot start` / `ot stop` / `ot toggle`, or Alfred. Right click (or ⌃/⌥ click) opens the menu.
 - **While recording:** `~/Library/Application Support/oton/active/<id>.caf`, 16 kHz mono 16-bit PCM. CAF stays readable when cut off by a crash. `<id>.json` next to it holds the start time and the segments (see below), rewritten whenever a segment starts.
-- **On stop:** encoded to **`~/Documents/oton/recordings/<name>.m4a`** (AAC, 16 kHz mono, 32 kbit/s, ~15 MB/h), the CAF is deleted, transcription is queued. Under 1 s is discarded ("too short"). Each recording has its own id, so a new one can start while the last one is still being encoded.
-- **Recordings are kept** (no retention, no auto-delete). Documents isn't synced to iCloud on this Mac (checked 2026-11-26).
+- **On stop:** encoded to **`~/oton/recordings/<name>.m4a`** (AAC, 16 kHz mono, 32 kbit/s, ~15 MB/h), the CAF is deleted, transcription is queued. Under 1 s is discarded ("too short"). Each recording has its own id, so a new one can start while the last one is still being encoded.
+- **Recordings are kept** (no retention, no auto-delete).
+- **`~/oton/` (changed 2026-11-26, 0.2.1; was `~/oton/`):** colleagues may have iCloud "Desktop & Documents Folders" on, which would upload every recording; and Finder shows Documents localized ("Dokumente"). Its own folder in the home directory avoids both. 0.2.0 data is moved over on first start (file by file if both exist, never overwriting; the old folder is removed only when empty).
 - **Sleep:** while recording, oton holds a `PreventUserIdleSystemSleep` assertion ("oton: recording", visible in `pmset -g assertions`). If the Mac sleeps anyway (lid closed on battery), the recording continues after wake; the missing time becomes a gap.
 - **Crash / power loss:** on the next start, leftover CAFs in `active/` are encoded and transcribed, with the note "recovered after oton stopped unexpectedly". Quit while recording: the file is closed and encoded right away, Wolfgang runs on the next start.
 
