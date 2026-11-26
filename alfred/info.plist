@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>bundleid</key><string>local.oton.alfred</string>
+	<key>name</key><string>oton</string>
+	<key>description</key><string>Start/stop oton recordings, copy transcriptions for Gemini</string>
+	<key>createdby</key><string>oton</string>
+	<key>version</key><string>0.2.0</string>
+	<key>readme</key><string>Keyword: ot (ot start, ot stop, ot copy, ot list, ot mic). All logic lives in /Applications/oton.app/Contents/MacOS/ot (ot alfred "query" renders the list; ↩ runs ot with the item's arguments).</string>
+	<key>objects</key>
+	<array>
+		<dict>
+			<key>type</key><string>alfred.workflow.input.scriptfilter</string>
+			<key>uid</key><string>A1F0C1D2-0001-4000-8000-000000000001</string>
+			<key>version</key><integer>3</integer>
+			<key>config</key>
+			<dict>
+				<key>keyword</key><string>ot</string>
+				<key>withspace</key><true/>
+				<key>argumenttype</key><integer>1</integer>
+				<key>argumenttrimmode</key><integer>0</integer>
+				<key>alfredfiltersresults</key><false/>
+				<key>queuedelaycustom</key><integer>1</integer>
+				<key>queuedelayimmediatelyinitially</key><true/>
+				<key>queuedelaymode</key><integer>0</integer>
+				<key>queuemode</key><integer>1</integer>
+				<key>runningsubtext</key><string>asking oton…</string>
+				<key>title</key><string>oton</string>
+				<key>subtext</key><string>start · stop · copy · list · mic</string>
+				<key>type</key><integer>0</integer>
+				<key>scriptargtype</key><integer>1</integer>
+				<key>escaping</key><integer>0</integer>
+				<key>script</key><string>/Applications/oton.app/Contents/MacOS/ot alfred "$1"</string>
+				<key>scriptfile</key><string></string>
+				<key>withspace</key><true/>
+			</dict>
+		</dict>
+		<dict>
+			<key>type</key><string>alfred.workflow.action.script</string>
+			<key>uid</key><string>A1F0C1D2-0002-4000-8000-000000000002</string>
+			<key>version</key><integer>2</integer>
+			<key>config</key>
+			<dict>
+				<key>type</key><integer>0</integer>
+				<key>scriptargtype</key><integer>1</integer>
+				<key>escaping</key><integer>0</integer>
+				<key>concurrently</key><false/>
+				<key>script</key><string>set -f
+# Word splitting on purpose: $1 is e.g. "copy 3 --prompt" or "mic 2".
+/Applications/oton.app/Contents/MacOS/ot $1 2&gt;&amp;1 | head -n 1</string>
+				<key>scriptfile</key><string></string>
+			</dict>
+		</dict>
+		<dict>
+			<key>type</key><string>alfred.workflow.output.notification</string>
+			<key>uid</key><string>A1F0C1D2-0003-4000-8000-000000000003</string>
+			<key>version</key><integer>1</integer>
+			<key>config</key>
+			<dict>
+				<key>title</key><string>oton</string>
+				<key>text</key><string>{query}</string>
+				<key>removeextension</key><false/>
+				<key>onlyshowifquerypopulated</key><true/>
+				<key>lastpathcomponent</key><false/>
+			</dict>
+		</dict>
+	</array>
+	<key>connections</key>
+	<dict>
+		<key>A1F0C1D2-0001-4000-8000-000000000001</key>
+		<array>
+			<dict>
+				<key>destinationuid</key><string>A1F0C1D2-0002-4000-8000-000000000002</string>
+				<key>modifiers</key><integer>0</integer>
+				<key>modifiersubtext</key><string></string>
+				<key>vitoclose</key><false/>
+			</dict>
+			<dict>
+				<key>destinationuid</key><string>A1F0C1D2-0002-4000-8000-000000000002</string>
+				<key>modifiers</key><integer>1048576</integer>
+				<key>modifiersubtext</key><string></string>
+				<key>vitoclose</key><false/>
+			</dict>
+		</array>
+		<key>A1F0C1D2-0002-4000-8000-000000000002</key>
+		<array>
+			<dict>
+				<key>destinationuid</key><string>A1F0C1D2-0003-4000-8000-000000000003</string>
+				<key>modifiers</key><integer>0</integer>
+				<key>modifiersubtext</key><string></string>
+				<key>vitoclose</key><false/>
+			</dict>
+		</array>
+	</dict>
+	<key>uidata</key>
+	<dict>
+		<key>A1F0C1D2-0001-4000-8000-000000000001</key><dict><key>xpos</key><real>30</real><key>ypos</key><real>30</real></dict>
+		<key>A1F0C1D2-0002-4000-8000-000000000002</key><dict><key>xpos</key><real>260</real><key>ypos</key><real>30</real></dict>
+		<key>A1F0C1D2-0003-4000-8000-000000000003</key><dict><key>xpos</key><real>490</real><key>ypos</key><real>30</real></dict>
+	</dict>
+</dict>
+</plist>
